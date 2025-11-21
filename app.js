@@ -14,33 +14,38 @@ async function fetchBooks() {
     const startIndex = (currentPage - 1) * resultsPerPage;
     const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(currentQuery)}&startIndex=${startIndex}&maxResults=${resultsPerPage}`;
 
-    // --- INICIO DEL LOG DE PETICIÓN ---
+    // MARCAR TIEMPO DE INICIO
     const startTime = performance.now();
-    let statusCode = 0;
 
-    console.log("=== PETICIÓN HTTP ===");
-    console.log("Método: GET");
-    console.log("URL:", url);
-    // -------------------------------
+    let response, data;
 
-    let response;
     try {
         response = await fetch(url);
-        statusCode = response.status;
 
+        // TIEMPO FINAL
         const endTime = performance.now();
         const responseTime = (endTime - startTime).toFixed(2);
 
-        console.log("Código de estado:", statusCode);
-        console.log("Tiempo de respuesta:", responseTime + " ms");
-        console.log("======================");
+        // DETECTAR CORS PERMITIDO
+        const corsAllowed = response.headers.get("Access-Control-Allow-Origin") ? 
+                            "Sí, permitido" : 
+                            "No especificado / permitido por política pública";
 
-    } catch (err) {
-        console.log("Error en la petición:", err);
+        // LOG DETALLADO
+        console.log("----- PETICIÓN HTTP -----");
+        console.log("Método:", "GET");
+        console.log("URL:", url);
+        console.log("Código de estado:", response.status);
+        console.log("Tiempo de respuesta:", responseTime + " ms");
+        console.log("CORS permitido:", corsAllowed);
+        console.log("--------------------------");
+
+        data = await response.json();
+
+    } catch (error) {
+        console.error("Error en la solicitud:", error);
         return;
     }
-
-    const data = await response.json();
 
     const resultsDiv = document.getElementById("results");
     resultsDiv.innerHTML = "";
