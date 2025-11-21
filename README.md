@@ -72,10 +72,16 @@ TABLA DE REGISTROS DE PETICIONES (EJEMPLOS)
 --------------------------------------------
 | Método | Búsqueda     | Código | Tiempo | CORS        |
 |--------|--------------|--------|--------|-------------|
-| GET    | "python"     | 200    | 491 ms | Permitido   |
-| GET    | "javascript" | 200    | 806 ms | Permitido   |
-| GET    | "asdfghjkl"  | 200    | 780 ms | Permitido   |
+| GET    | "python"     | 200    | 1104 ms| Permitido   |
+| GET    | "javascript" | 200    | 1070 ms | Permitido   |
+| GET    | "asdfghjkl"  | 200    | 545 ms | Permitido   |
 ----------------------------------------------------------
+<img width="1919" height="933" alt="image" src="https://github.com/user-attachments/assets/45af5af5-b4ae-4328-8ea3-533d4e194c38" />
+<img width="1920" height="936" alt="image" src="https://github.com/user-attachments/assets/76cec9f3-97df-4307-a74c-e59028e399c0" />
+<img width="1920" height="938" alt="image" src="https://github.com/user-attachments/assets/f1286cf8-431d-481f-9fc3-2686145d046a" />
+
+
+
 
 PASO 5: Commit y Push
 Trabajo realizado en la rama:
