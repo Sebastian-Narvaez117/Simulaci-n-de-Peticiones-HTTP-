@@ -1,61 +1,95 @@
-let pagina = 0;
-let queryActual = "";
+let currentPage = 1;
+let currentQuery = "";
+const resultsPerPage = 10;
 
-document.getElementById("btnBuscar").addEventListener("click", () => {
-    pagina = 0;
-    queryActual = document.getElementById("query").value.trim();
-    buscarLibros();
-});
-
-document.getElementById("nextBtn").addEventListener("click", () => {
-    pagina++;
-    buscarLibros();
-});
-
-document.getElementById("prevBtn").addEventListener("click", () => {
-    if (pagina > 0) pagina--;
-    buscarLibros();
-});
-
-function buscarLibros() {
-    const maxResults = 10;
-    const startIndex = pagina * maxResults;
-
-    if (queryActual === "") {
-        document.getElementById("resultado").innerHTML = "Escribe algo para buscar...";
-        return;
-    }
-
-    const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(queryActual)}&startIndex=${startIndex}&maxResults=${maxResults}`;
-
-    fetch(url)
-        .then(res => res.json())
-        .then(data => {
-            mostrarResultados(data);
-        })
-        .catch(err => console.error("Error:", err));
+async function searchBooks() {
+    currentQuery = document.getElementById("searchInput").value.trim();
+    currentPage = 1;
+    fetchBooks();
 }
 
-function mostrarResultados(data) {
-    const contenedor = document.getElementById("resultado");
-    contenedor.innerHTML = "";
+async function fetchBooks() {
+    if (!currentQuery) return;
 
-    if (!data.items) {
-        contenedor.innerHTML = "No se encontraron resultados.";
+    const startIndex = (currentPage - 1) * resultsPerPage;
+    const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(currentQuery)}&startIndex=${startIndex}&maxResults=${resultsPerPage}`;
+
+    // --- INICIO DEL LOG DE PETICIÓN ---
+    const startTime = performance.now();
+    let statusCode = 0;
+
+    console.log("=== PETICIÓN HTTP ===");
+    console.log("Método: GET");
+    console.log("URL:", url);
+    // -------------------------------
+
+    let response;
+    try {
+        response = await fetch(url);
+        statusCode = response.status;
+
+        const endTime = performance.now();
+        const responseTime = (endTime - startTime).toFixed(2);
+
+        console.log("Código de estado:", statusCode);
+        console.log("Tiempo de respuesta:", responseTime + " ms");
+        console.log("======================");
+
+    } catch (err) {
+        console.log("Error en la petición:", err);
         return;
     }
 
-    data.items.forEach(item => {
-        const titulo = item.volumeInfo.title || "Sin título";
-        const autores = item.volumeInfo.authors ? item.volumeInfo.authors.join(", ") : "Autor desconocido";
+    const data = await response.json();
 
-        const div = document.createElement("div");
-        div.className = "libro";
-        div.innerHTML = `<strong>${titulo}</strong><br><em>${autores}</em>`;
-        contenedor.appendChild(div);
+    const resultsDiv = document.getElementById("results");
+    resultsDiv.innerHTML = "";
+
+    if (!data.items) {
+        resultsDiv.innerHTML = "<p>No se encontraron resultados.</p>";
+        return;
+    }
+
+    data.items.forEach(book => {
+        const info = book.volumeInfo;
+
+        const title = info.title || "Sin título";
+        const authors = info.authors ? info.authors.join(", ") : "Autor desconocido";
+        const desc = info.description ? info.description.substring(0, 200) + "..." : "Sin descripción";
+        const thumbnail = info.imageLinks ? info.imageLinks.thumbnail : "";
+
+        const card = `
+            <div class="book-card">
+                ${thumbnail ? `<img src="${thumbnail}" alt="book cover">` : ""}
+                <div class="book-info">
+                    <h3>${title}</h3>
+                    <p><strong>Autor:</strong> ${authors}</p>
+                    <p>${desc}</p>
+                </div>
+            </div>
+        `;
+
+        resultsDiv.innerHTML += card;
     });
 
-    // Control de botones de paginación
-    document.getElementById("prevBtn").disabled = (pagina === 0);
-    document.getElementById("nextBtn").disabled = (!data.items || data.items.length < 10);
+    updatePagination(data.totalItems);
+}
+
+function updatePagination(totalItems) {
+    const totalPages = Math.ceil(totalItems / resultsPerPage);
+
+    document.getElementById("pageNumber").textContent = `Página ${currentPage}`;
+
+    document.getElementById("prevBtn").disabled = currentPage <= 1;
+    document.getElementById("nextBtn").disabled = currentPage >= totalPages;
+}
+
+function nextPage() {
+    currentPage++;
+    fetchBooks();
+}
+
+function prevPage() {
+    currentPage--;
+    fetchBooks();
 }
